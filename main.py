@@ -2,12 +2,19 @@ import pygame
 import time
 import random
 import math
+
+from pygame.rect import Rect
+
 import Rowdy
 import Ball
+from Wall import Wall
 
-rowdy = Rowdy.Rowdy(512, 76, 30, 0)
+rowdy = Rowdy.Rowdy(512, 76, 30, 0, 'Buddy')
 shooting_rowdies = []
 snowballs = []
+wall1 = Wall(507, 200, 20, 20)
+walls = [wall1]
+collidables = {wall1: wall1.rect}
 green = (0, 255, 0)
 red = (255, 0, 0)
 t = 0
@@ -22,7 +29,7 @@ yd1 = 30
 
 
 def move(someone, keys):
-    ds = map(lambda x, y, z: someone.speed * (x - y) + z, keys[1], keys[0], [someone.y, someone.x])
+    ds = map(lambda dx, dy, z: someone.speed * (dx - dy) + z, keys[1], keys[0], [someone.y, someone.x])
     if int(ds[1]) in range(0, w - 50) and int(ds[0]) in range(0, h - 40):
         someone.y, someone.x = ds[0], ds[1]
 
@@ -35,14 +42,27 @@ def shoot(someone):
         dy = someone.y + 20
         dx -= 20 * math.cos(someone.a * math.pi / 180)
         dy += 20 * math.sin(someone.a * math.pi / 180)
-        print someone.a, someone.x, someone.y, dx, dy
-        snowballs.append(Ball.Ball(dx, dy, someone.a, someone.s_s, green))
+        snowballs.append(Ball.Ball(dx, dy, someone.a, someone.s_s, green, rowdy))
 
 
 def cooldown_action(someone):
     someone.image = pygame.image.load('images/rowdy_shoot.png')
     if time.time() - someone.a_t > someone.a_s:
         someone.image = pygame.image.load('images/rowdy.png')
+
+
+def generate_walls():
+    walls_count = random.randint(3, 10)
+    print walls_count
+    for i in range(walls_count):
+        wx = random.randint(0, w - 20)
+        wy = random.randint(0, h - 20)
+        new_rect = Rect(wx, wy, 20, 20)
+        if not new_rect.collidedict(collidables):
+            new_wall = Wall(wx, wy, 20, 20, new_rect)
+            walls.append(new_wall)
+            collidables[new_wall] = new_wall.rect
+
 
 
 def move_bullets(someone):
@@ -54,6 +74,8 @@ def move_bullets(someone):
     else:
         someone.x += someone.dx
         someone.y += someone.dy
+        someone.rect.x = someone.x
+        someone.rect.y = someone.y
 
 
 def collide_action(ball):
@@ -72,6 +94,8 @@ def collide_action(ball):
     else:
         snowballs.remove(ball)
 
+
+generate_walls()
 while eternity:
     pressedList = pygame.key.get_pressed()
     if pressedList[pygame.K_ESCAPE]:
@@ -99,14 +123,23 @@ while eternity:
         cooldown_action(person)
 
     screen.blit(pygame.transform.rotate(rowdy.image, rowdy.a), (int(rowdy.x), int(rowdy.y)))
-    # pygame.draw.circle(screen, (255, 0, 0), (x, y), 12, 0)
-    # pygame.draw.line(screen, (0, 0, 255), (x, y), (xd1 + x, yd1 + y), 3)
+    for wall in walls:
+        screen.blit(wall.image, (int(wall.x), int(wall.y)))
+        # pygame.draw.rect(screen, (255, 0, 0), wall.rect, 2)
     for b in snowballs:
         b.rotation_angle += 1.0
         b.rotation_angle %= 360
         screen.blit(pygame.transform.rotate(b.image, b.rotation_angle),
                     (int(b.x), int(b.y)))
-        # pygame.draw.circle(screen, b.color,(int(b.x), int(b.y)),3,0)
+        # pygame.draw.rect(screen, (255, 0, 0), b.rect, 2)
+        l = b.rect.collidedictall(collidables, 1)
+        if l:
+            for c in l:
+                collidables.pop(c[0])
+                walls.remove(c[0])
+            b.collided = True
+        if not walls:
+            eternity = False
     pygame.display.flip()
 pygame.display.quit()
 pygame.quit()
