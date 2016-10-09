@@ -23,7 +23,7 @@ yd1 = 30
 
 def move(someone, keys):
     ds = map(lambda x, y, z: someone.speed * (x - y) + z, keys[1], keys[0], [someone.y, someone.x])
-    if int(ds[1]) in range(6, w - 6) and int(ds[0]) in range(6, h - 6):
+    if int(ds[1]) in range(0, w - 50) and int(ds[0]) in range(0, h - 40):
         someone.y, someone.x = ds[0], ds[1]
 
 
@@ -31,7 +31,12 @@ def shoot(someone):
     if time.time() - someone.a_t > someone.a_s:
         someone.a_t = time.time()
         shooting_rowdies.append(someone)
-        snowballs.append(Ball.Ball(someone.x, someone.y, someone.a, green))
+        dx = someone.x + 20
+        dy = someone.y + 20
+        dx -= 20 * math.cos(someone.a * math.pi / 180)
+        dy += 20 * math.sin(someone.a * math.pi / 180)
+        print someone.a, someone.x, someone.y, dx, dy
+        snowballs.append(Ball.Ball(dx, dy, someone.a, someone.s_s, green))
 
 
 def cooldown_action(someone):
@@ -52,18 +57,18 @@ def move_bullets(someone):
 
 
 def collide_action(ball):
-    # pygame.draw.circle(screen, self.color, (int(self.x), int(self.y)), (6 - self.countdown / 10) * 3, 0)
+    pygame.draw.circle(screen, ball.color, (int(ball.x), int(ball.y)), (6 - ball.countdown / 10) * 3, 0)
     ball.countdown -= 1
     if ball.countdown > 40:
-        ball.color = (128, 255, 0)
+        ball.color = (114, 241, 213)
     elif ball.countdown > 30:
-        ball.color = (128, 128, 0)
+        ball.color = (114, 241, 213)
     elif ball.countdown > 20:
-        ball.color = (172, 128, 0)
+        ball.color = (114, 207, 241)
     elif ball.countdown > 10:
-        ball.color = (255, 128, 0)
+        ball.color = (30, 163, 212)
     elif ball.countdown > 0:
-        ball.color = (255, 0, 0)
+        ball.color = (30, 163, 212)
     else:
         snowballs.remove(ball)
 
