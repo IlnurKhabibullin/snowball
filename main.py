@@ -1,3 +1,4 @@
+import os
 import pygame
 import time
 import random
@@ -5,11 +6,21 @@ import math
 
 from pygame.rect import Rect
 
-import Rowdy
-import Ball
-from Wall import Wall
+import rowdy
+import ball
+from wall import Wall
 
-rowdy = Rowdy.Rowdy(512, 76, 30, 0, 'Buddy')
+images = {}
+
+
+def load_images():
+    input_files = os.listdir('images')
+    for input_file in input_files:
+        image = pygame.image.load('images/' + input_file)
+        images[input_file] = image
+
+load_images()
+rowdy = rowdy.Rowdy(512, 76, 30, 0, 'Buddy')
 shooting_rowdies = []
 snowballs = []
 wall1 = Wall(507, 200, 20, 20)
@@ -42,7 +53,7 @@ def shoot(someone):
         dy = someone.y + 20
         dx -= 20 * math.cos(someone.a * math.pi / 180)
         dy += 20 * math.sin(someone.a * math.pi / 180)
-        snowballs.append(Ball.Ball(dx, dy, someone.a, someone.s_s, green, rowdy))
+        snowballs.append(ball.Ball(dx, dy, someone.a, someone.s_s, green, rowdy))
 
 
 def cooldown_action(someone):
@@ -53,7 +64,7 @@ def cooldown_action(someone):
 
 def generate_walls():
     walls_count = random.randint(3, 10)
-    print walls_count
+    print '{} walls generated'.format(walls_count)
     for i in range(walls_count):
         wx = random.randint(0, w - 20)
         wy = random.randint(0, h - 20)
@@ -123,6 +134,7 @@ while eternity:
         cooldown_action(person)
 
     screen.blit(pygame.transform.rotate(rowdy.image, rowdy.a), (int(rowdy.x), int(rowdy.y)))
+    screen.blit(images['rowdy.png'], (50, 50))
     for wall in walls:
         screen.blit(wall.image, (int(wall.x), int(wall.y)))
         # pygame.draw.rect(screen, (255, 0, 0), wall.rect, 2)
